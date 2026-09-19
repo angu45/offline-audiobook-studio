@@ -1,24 +1,41 @@
+/*
+ * Offline Audiobook Studio
+ * Service Worker
+ *
+ * Uses a safe cache-first strategy for
+ * local application files.
+ */
+
 const CACHE_NAME =
-  "offline-audiobook-studio-v3";
+  "offline-audiobook-studio-pro-v4";
 
 
-const ASSETS = [
+const APP_ASSETS = [
 
   "./",
+
   "./index.html",
 
   "./css/style.css",
+
   "./css/responsive.css",
 
   "./js/app.js",
+
   "./js/player.js",
+
   "./js/speech.js",
 
   "./pyscript/script_analyzer.py",
 
   "./manifest.json"
+
 ];
 
+
+/* =========================================================
+   INSTALL
+========================================================= */
 
 self.addEventListener(
   "install",
@@ -26,18 +43,29 @@ self.addEventListener(
 
     event.waitUntil(
 
-      caches.open(CACHE_NAME)
-        .then(cache =>
-          cache.addAll(ASSETS)
-        )
-        .then(() =>
+      caches.open(
+        CACHE_NAME
+      )
+      .then(
+        cache =>
+          cache.addAll(
+            APP_ASSETS
+          )
+      )
+      .then(
+        () =>
           self.skipWaiting()
-        )
+      )
 
     );
+
   }
 );
 
+
+/* =========================================================
+   ACTIVATE
+========================================================= */
 
 self.addEventListener(
   "activate",
@@ -46,80 +74,133 @@ self.addEventListener(
     event.waitUntil(
 
       caches.keys()
-        .then(keys =>
-          Promise.all(
-            keys
-              .filter(
-                key =>
-                  key !== CACHE_NAME
-              )
-              .map(key =>
-                caches.delete(key)
-              )
-          )
+        .then(
+          keys => {
+
+            return Promise.all(
+
+              keys
+                .filter(
+                  key =>
+                    key !==
+                    CACHE_NAME
+                )
+                .map(
+                  key =>
+                    caches.delete(
+                      key
+                    )
+                )
+
+            );
+
+          }
         )
-        .then(() =>
-          self.clients.claim()
+        .then(
+          () =>
+            self.clients.claim()
         )
 
     );
+
   }
 );
 
+
+/* =========================================================
+   FETCH
+========================================================= */
 
 self.addEventListener(
   "fetch",
   event => {
 
+    /*
+     * Only handle GET requests.
+     */
+
     if (
-      event.request.method !== "GET"
+      event.request.method !==
+      "GET"
     ) {
+
       return;
+
     }
 
 
+    const request =
+      event.request;
+
+
+    /*
+     * Cache first for local assets.
+     */
+
     event.respondWith(
 
-      caches.match(event.request)
-        .then(cached => {
+      caches.match(
+        request
+      )
+      .then(
+        cached => {
 
           if (cached) {
+
             return cached;
+
           }
 
-          return fetch(event.request)
-            .then(response => {
+
+          return fetch(
+            request
+          )
+          .then(
+            response => {
+
+              /*
+               * Only cache valid
+               * same-origin responses.
+               */
 
               if (
-                !response ||
-                response.status !== 200 ||
-                response.type === "opaque"
+                response.ok &&
+                new URL(
+                  request.url
+                ).origin ===
+                self.location.origin
               ) {
-                return response;
+
+                const copy =
+                  response.clone();
+
+
+                caches.open(
+                  CACHE_NAME
+                )
+                .then(
+                  cache => {
+
+                    cache.put(
+                      request,
+                      copy
+                    );
+
+                  }
+                );
+
               }
 
-              const copy =
-                response.clone();
-
-              caches.open(CACHE_NAME)
-                .then(cache =>
-                  cache.put(
-                    event.request,
-                    copy
-                  )
-                );
 
               return response;
 
-            })
-            .catch(() =>
-              caches.match(
-                "./index.html"
-              )
-            );
+            }
+          );
 
-        })
+        }
+      )
 
     );
+
   }
 );
