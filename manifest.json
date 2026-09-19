@@ -1,0 +1,9 @@
+{
+    "name": "Offline Audiobook Studio",
+    "short_name": "AudioStudio",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#09090b",
+    "theme_color": "#3b82f6",
+    "description": "Convert scripts to audiobooks entirely locally."
+}
