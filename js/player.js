@@ -1,149 +1,314 @@
 export class AudiobookPlayer {
-    constructor(ttsProvider) {
-        this.tts = ttsProvider;
-        this.bookData = null;
-        this.chapIndex = 0;
-        this.chunkIndex = 0;
-        this.isPlaying = false;
-        this.isPaused = false;
-        
-        // UI Elements bind
-        this.uiCurrentChap = document.getElementById("current-chapter");
-        this.uiCurrentSent = document.getElementById("current-sentence");
-        this.uiProgressBar = document.getElementById("progress-bar");
+
+  constructor(ttsProvider, settingsGetter, ui = {}) {
+
+    this.tts = ttsProvider;
+    this.getSettings = settingsGetter;
+
+    this.ui = ui;
+
+    this.bookData = null;
+
+    this.chapterIndex = 0;
+    this.sentenceIndex = 0;
+
+    this.playing = false;
+    this.paused = false;
+  }
+
+
+  load(bookData) {
+
+    this.bookData = bookData;
+
+    this.chapterIndex = 0;
+    this.sentenceIndex = 0;
+
+    this.playing = false;
+    this.paused = false;
+
+    this.updateUI();
+  }
+
+
+  get currentChapter() {
+
+    if (!this.bookData?.chapters?.length) {
+      return null;
     }
 
-    loadBook(data) {
-        this.bookData = data;
-        this.chapIndex = 0;
-        this.chunkIndex = 0;
-        this.updateUI();
+    return this.bookData.chapters[this.chapterIndex];
+  }
+
+
+  get currentSentence() {
+
+    const chapter = this.currentChapter;
+
+    if (!chapter?.sentences?.length) {
+      return "";
     }
 
-    getSettings() {
-        return {
-            voice: document.getElementById("voice-select").value,
-            rate: parseFloat(document.getElementById("rate-slider").value),
-            pitch: parseFloat(document.getElementById("pitch-slider").value),
-            volume: parseFloat(document.getElementById("volume-slider").value)
-        };
+    return chapter.sentences[this.sentenceIndex] || "";
+  }
+
+
+  play() {
+
+    if (!this.bookData) {
+      return;
     }
 
-    play() {
-        if (!this.bookData || this.bookData.length === 0) return;
-        
-        if (this.isPaused) {
-            this.tts.resume();
-            this.isPaused = false;
-            this.isPlaying = true;
+    if (this.tts.paused) {
+      this.tts.resume();
+      this.playing = true;
+      this.paused = false;
+      this.updateUI();
+      return;
+    }
+
+    this.speakCurrent();
+  }
+
+
+  speakCurrent() {
+
+    const sentence = this.currentSentence;
+
+    if (!sentence) {
+      this.nextSentence();
+      return;
+    }
+
+    this.playing = true;
+    this.paused = false;
+
+    this.updateUI();
+
+    const settings = this.getSettings();
+
+    this.tts.synthesize(
+      sentence,
+      settings,
+      {
+        onStart: () => {
+          this.playing = true;
+          this.updateUI();
+        },
+
+        onEnd: () => {
+
+          if (!this.playing) {
             return;
+          }
+
+          if (settings.autoAdvance) {
+            this.nextSentence();
+          } else {
+            this.playing = false;
+            this.updateUI();
+          }
+        },
+
+        onError: () => {
+          this.playing = false;
+          this.updateUI();
         }
+      }
+    );
+  }
 
-        const chapter = this.bookData[this.chapIndex];
-        const chunk = chapter.chunks[this.chunkIndex];
-        
-        if (!chunk) {
-            this.nextChapter();
-            return;
-        }
 
-        this.isPlaying = true;
-        this.updateUI();
+  togglePlayPause() {
 
-        this.tts.synthesize(
-            chunk.text, 
-            this.getSettings(),
-            () => this.onChunkEnd(),
-            (e) => console.error("TTS Error:", e)
-        );
+    if (this.tts.paused) {
+
+      this.tts.resume();
+
+      this.playing = true;
+      this.paused = false;
+
+      this.updateUI();
+
+      return;
     }
 
-    pause() {
-        this.tts.pause();
-        this.isPaused = true;
-        this.isPlaying = false;
+    if (this.playing) {
+
+      this.tts.pause();
+
+      this.playing = false;
+      this.paused = true;
+
+      this.updateUI();
+
+      return;
     }
 
-    stop() {
-        this.tts.stop();
-        this.isPlaying = false;
-        this.isPaused = false;
-        this.chunkIndex = 0;
-        this.updateUI();
+    this.play();
+  }
+
+
+  stop() {
+
+    this.tts.stop();
+
+    this.playing = false;
+    this.paused = false;
+
+    this.updateUI();
+  }
+
+
+  nextSentence() {
+
+    const chapter = this.currentChapter;
+
+    if (!chapter) {
+      return;
     }
 
-    onChunkEnd() {
-        if (!this.isPlaying) return;
-        const autoAdvance = document.getElementById("auto-advance").checked;
-        if (!autoAdvance) {
-            this.isPlaying = false;
-            return;
-        }
-        this.nextSentence();
+    if (
+      this.sentenceIndex <
+      chapter.sentences.length - 1
+    ) {
+
+      this.sentenceIndex++;
+
+    } else {
+
+      this.nextChapter();
+
+      return;
     }
 
-    nextSentence() {
-        const chapter = this.bookData[this.chapIndex];
-        if (this.chunkIndex < chapter.chunks.length - 1) {
-            this.chunkIndex++;
-            this.play();
-        } else {
-            this.nextChapter();
-        }
+    this.updateUI();
+
+    if (this.playing) {
+      this.speakCurrent();
+    }
+  }
+
+
+  previousSentence() {
+
+    if (this.sentenceIndex > 0) {
+
+      this.sentenceIndex--;
+
+    } else if (this.chapterIndex > 0) {
+
+      this.chapterIndex--;
+
+      const chapter = this.currentChapter;
+
+      this.sentenceIndex =
+        Math.max(0, chapter.sentences.length - 1);
     }
 
-    prevSentence() {
-        if (this.chunkIndex > 0) {
-            this.chunkIndex--;
-            this.play();
-        } else if (this.chapIndex > 0) {
-            this.chapIndex--;
-            this.chunkIndex = this.bookData[this.chapIndex].chunks.length - 1;
-            this.play();
-        }
+    this.updateUI();
+  }
+
+
+  nextChapter() {
+
+    if (
+      this.bookData &&
+      this.chapterIndex <
+      this.bookData.chapters.length - 1
+    ) {
+
+      this.chapterIndex++;
+      this.sentenceIndex = 0;
+
+      this.updateUI();
+
+      if (this.playing) {
+        this.speakCurrent();
+      }
+
+    } else {
+
+      this.stop();
+    }
+  }
+
+
+  previousChapter() {
+
+    if (this.chapterIndex > 0) {
+
+      this.chapterIndex--;
+      this.sentenceIndex = 0;
+
+      this.updateUI();
+    }
+  }
+
+
+  updateUI() {
+
+    const chapter = this.currentChapter;
+
+    const sentence = this.currentSentence;
+
+    if (this.ui.currentChapter) {
+      this.ui.currentChapter.textContent =
+        chapter?.title || "Ready to play";
     }
 
-    nextChapter() {
-        if (this.chapIndex < this.bookData.length - 1) {
-            this.chapIndex++;
-            this.chunkIndex = 0;
-            this.play();
-        } else {
-            this.stop();
-            this.uiCurrentSent.innerText = "Audiobook Completed.";
-        }
+    if (this.ui.currentSentence) {
+      this.ui.currentSentence.textContent =
+        sentence || "No sentence selected";
     }
 
-    prevChapter() {
-        if (this.chapIndex > 0) {
-            this.chapIndex--;
-            this.chunkIndex = 0;
-            this.play();
-        }
+    if (this.ui.playButton) {
+
+      this.ui.playButton.textContent =
+        this.playing ? "⏸" : "▶";
     }
 
-    updateUI() {
-        if(!this.bookData) return;
-        const chapter = this.bookData[this.chapIndex];
-        const chunk = chapter.chunks[this.chunkIndex];
-        this.uiCurrentChap.innerText = chapter.title;
-        this.uiCurrentSent.innerText = chunk ? chunk.text : "End of chapter";
-        
-        // Calculate total progress
-        let totalChunks = 0;
-        let passedChunks = 0;
-        
-        this.bookData.forEach((ch, idx) => {
-            totalChunks += ch.chunks.length;
-            if (idx < this.chapIndex) {
-                passedChunks += ch.chunks.length;
-            } else if (idx === this.chapIndex) {
-                passedChunks += this.chunkIndex;
-            }
-        });
-        
-        const pct = (passedChunks / totalChunks) * 100;
-        this.uiProgressBar.style.width = `${pct}%`;
+    if (!this.bookData) {
+
+      if (this.ui.progressBar) {
+        this.ui.progressBar.style.width = "0%";
+      }
+
+      if (this.ui.progressText) {
+        this.ui.progressText.textContent = "0%";
+      }
+
+      return;
     }
+
+    const totalChapters =
+      this.bookData.chapters.length;
+
+    const completed =
+      this.chapterIndex +
+      (
+        this.currentChapter
+          ? this.sentenceIndex /
+            Math.max(1, this.currentChapter.sentences.length)
+          : 0
+      );
+
+    const progress =
+      totalChapters > 0
+        ? Math.min(
+            100,
+            Math.round((completed / totalChapters) * 100)
+          )
+        : 0;
+
+    if (this.ui.progressBar) {
+      this.ui.progressBar.style.width =
+        `${progress}%`;
+    }
+
+    if (this.ui.progressText) {
+      this.ui.progressText.textContent =
+        `${progress}%`;
+    }
+  }
 }
-
