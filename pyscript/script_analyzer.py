@@ -1,142 +1,256 @@
 import re
 import json
+
 from js import window
 from pyodide.ffi import create_proxy
 
 
+# =========================================================
+# NUMBER NORMALIZATION
+# =========================================================
+
 def normalize_numbers(text):
-    """
-    Basic number normalization.
-    Keeps the text understandable for narration.
-    """
 
-    replacements = {
-        "$": " dollars ",
-        "₹": " rupees ",
-        "€": " euros ",
-        "%": " percent "
-    }
+    text = str(text or "")
 
-    for old, new in replacements.items():
-        text = text.replace(old, new)
+    # Currency
+    text = re.sub(
+        r"(?<!\w)\$(\d+(?:\.\d+)?)",
+        r"\1 dollars",
+        text
+    )
 
-    return re.sub(r"\s+", " ", text).strip()
+    text = re.sub(
+        r"(?<!\w)₹\s*(\d+(?:\.\d+)?)",
+        r"\1 rupees",
+        text
+    )
 
+    # Percentage
+    text = re.sub(
+        r"(\d+(?:\.\d+)?)%",
+        r"\1 percent",
+        text
+    )
+
+    # Multiple spaces
+    text = re.sub(
+        r"[ \t]+",
+        " ",
+        text
+    )
+
+    return text.strip()
+
+
+# =========================================================
+# SENTENCE SPLITTER
+# =========================================================
 
 def split_sentences(text):
 
-    pattern = r"[^.!?]+[.!?]+|[^.!?]+$"
+    if not text:
+        return []
 
-    matches = re.findall(pattern, text)
+    pattern = (
+        r"[^.!?]+[.!?]+"
+        r"|[^.!?]+$"
+    )
+
+    result = re.findall(
+        pattern,
+        text,
+        flags=re.MULTILINE
+    )
 
     return [
-        x.strip()
-        for x in matches
-        if x.strip()
+        item.strip()
+        for item in result
+        if item.strip()
     ]
 
+
+# =========================================================
+# CHAPTER DETECTION
+# =========================================================
 
 def detect_chapters(text):
 
     lines = [
         line.strip()
-        for line in text.splitlines()
+        for line in str(text).splitlines()
         if line.strip()
     ]
 
+
     chapter_pattern = re.compile(
-        r"^(chapter|chap\.|part|prologue|epilogue|introduction)\b",
+        r"^(chapter|chap\.|part|prologue|epilogue|"
+        r"introduction|section)\b",
         re.IGNORECASE
     )
 
+
     chapters = []
+
 
     current = {
         "title": "Chapter 1",
         "sentences": []
     }
 
+
     for line in lines:
 
         if chapter_pattern.match(line):
 
             if current["sentences"]:
-                chapters.append(current)
+
+                chapters.append(
+                    current
+                )
+
 
             current = {
                 "title": line,
                 "sentences": []
             }
 
-            continue
 
-        current["sentences"].extend(
-            split_sentences(line)
-        )
+        else:
+
+            current["sentences"].extend(
+                split_sentences(line)
+            )
+
 
     if current["sentences"]:
-        chapters.append(current)
+
+        chapters.append(
+            current
+        )
+
 
     return chapters
 
 
-def analyze_script(text, normalize=True):
+# =========================================================
+# ANALYZE SCRIPT
+# =========================================================
 
-    text = str(text or "").strip()
+def analyze_script(
+    text,
+    normalize=True
+):
+
+    raw = str(text or "").strip()
+
 
     if normalize:
-        text_for_stats = normalize_numbers(text)
+
+        processed = normalize_numbers(
+            raw
+        )
+
     else:
-        text_for_stats = text
+
+        processed = raw
+
+
+    sentences = split_sentences(
+        processed
+    )
+
+
+    chapters = detect_chapters(
+        processed
+    )
+
+
+    # If no chapter heading exists
+    if (
+        not chapters and
+        sentences
+    ):
+
+        chapters = [
+            {
+                "title": "Chapter 1",
+                "sentences": sentences
+            }
+        ]
+
 
     words = (
-        len(re.findall(r"\S+", text_for_stats))
-        if text_for_stats
+        len(
+            re.findall(
+                r"\S+",
+                processed
+            )
+        )
+        if processed
         else 0
     )
 
-    characters = len(text)
 
-    sentences = split_sentences(
-        text_for_stats
+    characters = len(raw)
+
+
+    sentence_count = len(
+        sentences
     )
 
-    chapters = detect_chapters(
-        text_for_stats
-    )
 
-    if not chapters and sentences:
+    # Approximate narration speed
+    words_per_minute = 150
 
-        chapters = [{
-            "title": "Chapter 1",
-            "sentences": sentences
-        }]
 
-    estimated_minutes = (
-        words / 150
+    duration_minutes = (
+        words /
+        words_per_minute
         if words
         else 0
     )
 
+
     return {
+
         "words": words,
+
         "characters": characters,
-        "sentences": len(sentences),
+
+        "sentences": sentence_count,
+
         "chapters": chapters,
-        "durationMinutes": estimated_minutes
+
+        "durationMinutes":
+            duration_minutes,
+
+        "narrationText":
+            processed
+
     }
 
 
-def py_analyze_script(text, normalize=True):
+# =========================================================
+# PYSCRIPT BRIDGE
+# =========================================================
+
+def py_analyze_script(
+    text,
+    normalize=True
+):
 
     result = analyze_script(
         text,
         normalize
     )
 
-    return json.dumps(result)
+
+    return json.dumps(
+        result
+    )
 
 
-proxy = create_proxy(py_analyze_script)
-
-window.pyAnalyzeScript = proxy
+window.pyAnalyzeScript = create_proxy(
+    py_analyze_script
+)
