@@ -1,69 +1,164 @@
-// LocalTTSProvider Interface ensures architecture supports future local models
+// Local browser speech engine.
+// No external TTS API is used.
+
 export class LocalTTSProvider {
-    async loadModel() { throw new Error("Not implemented"); }
-    getVoices() { throw new Error("Not implemented"); }
-    synthesize(text, settings) { throw new Error("Not implemented"); }
-    stop() { throw new Error("Not implemented"); }
-    pause() { throw new Error("Not implemented"); }
-    resume() { throw new Error("Not implemented"); }
+  async loadModel() {
+    return true;
+  }
+
+  async synthesize() {
+    throw new Error("Local model provider is not configured.");
+  }
+
+  stop() {}
+  pause() {}
+  resume() {}
 }
 
-export class BrowserTTSProvider extends LocalTTSProvider {
-    constructor() {
-        super();
-        this.synth = window.speechSynthesis;
-        this.voices = [];
-        this.currentUtterance = null;
+
+export class BrowserTTSProvider {
+
+  constructor() {
+    this.synth = window.speechSynthesis;
+    this.voices = [];
+
+    this.loadVoices();
+  }
+
+
+  loadVoices() {
+
+    const update = () => {
+      this.voices = this.synth.getVoices() || [];
+    };
+
+    update();
+
+    if ("onvoiceschanged" in this.synth) {
+      this.synth.addEventListener("voiceschanged", update);
+    }
+  }
+
+
+  async loadModel() {
+
+    return new Promise(resolve => {
+
+      const voices = this.synth.getVoices();
+
+      if (voices.length > 0) {
+        this.voices = voices;
+        resolve(true);
+        return;
+      }
+
+      const handler = () => {
+        this.voices = this.synth.getVoices() || [];
+
+        this.synth.removeEventListener(
+          "voiceschanged",
+          handler
+        );
+
+        resolve(true);
+      };
+
+      this.synth.addEventListener(
+        "voiceschanged",
+        handler
+      );
+
+      setTimeout(() => {
+        this.voices = this.synth.getVoices() || [];
+        resolve(true);
+      }, 1500);
+
+    });
+  }
+
+
+  getVoices() {
+    return this.voices || [];
+  }
+
+
+  synthesize(text, settings = {}, callbacks = {}) {
+
+    if (!text || !text.trim()) {
+      return;
     }
 
-    async loadModel() {
-        return new Promise((resolve) => {
-            let voices = this.synth.getVoices();
-            if (voices.length > 0) {
-                this.voices = voices;
-                resolve();
-            } else {
-                this.synth.onvoiceschanged = () => {
-                    this.voices = this.synth.getVoices();
-                    resolve();
-                };
-            }
-        });
+    this.stop();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    utterance.rate = Number(settings.rate ?? 1);
+    utterance.pitch = Number(settings.pitch ?? 1);
+    utterance.volume = Number(settings.volume ?? 1);
+
+    if (settings.voiceName) {
+
+      const voice = this.getVoices().find(
+        v => v.name === settings.voiceName
+      );
+
+      if (voice) {
+        utterance.voice = voice;
+      }
     }
 
-    getVoices() {
-        return this.voices;
+    if (settings.lang) {
+      utterance.lang = settings.lang;
     }
 
-    synthesize(text, settings, onEndCallback, onErrorCallback) {
-        this.stop();
-        this.currentUtterance = new SpeechSynthesisUtterance(text);
-        
-        if (settings.voice) {
-            const selectedVoice = this.voices.find(v => v.name === settings.voice);
-            if (selectedVoice) this.currentUtterance.voice = selectedVoice;
-        }
-        
-        this.currentUtterance.rate = settings.rate || 1;
-        this.currentUtterance.pitch = settings.pitch || 1;
-        this.currentUtterance.volume = settings.volume || 1;
+    utterance.onstart = () => {
+      callbacks.onStart?.();
+    };
 
-        this.currentUtterance.onend = onEndCallback;
-        this.currentUtterance.onerror = onErrorCallback;
+    utterance.onend = () => {
+      callbacks.onEnd?.();
+    };
 
-        this.synth.speak(this.currentUtterance);
+    utterance.onerror = event => {
+      callbacks.onError?.(event);
+    };
+
+    this.synth.speak(utterance);
+
+    return utterance;
+  }
+
+
+  stop() {
+
+    if (this.synth) {
+      this.synth.cancel();
     }
+  }
 
-    stop() {
-        this.synth.cancel();
-    }
 
-    pause() {
-        this.synth.pause();
-    }
+  pause() {
 
-    resume() {
-        this.synth.resume();
+    if (this.synth?.speaking) {
+      this.synth.pause();
     }
+  }
+
+
+  resume() {
+
+    if (this.synth?.paused) {
+      this.synth.resume();
+    }
+  }
+
+
+  get speaking() {
+    return this.synth?.speaking || false;
+  }
+
+
+  get paused() {
+    return this.synth?.paused || false;
+  }
 }
-
