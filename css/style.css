@@ -1,0 +1,63 @@
+:root {
+    --bg: #f4f4f5;
+    --surface: #ffffff;
+    --text: #18181b;
+    --muted: #71717a;
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --border: #e4e4e7;
+    --radius: 8px;
+    --player-bg: #ffffff;
+}
+
+body.dark-mode {
+    --bg: #09090b;
+    --surface: #18181b;
+    --text: #f4f4f5;
+    --muted: #a1a1aa;
+    --border: #27272a;
+    --player-bg: #18181b;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; background: var(--surface); border-bottom: 1px solid var(--border); }
+.logo { font-weight: bold; font-size: 1.2rem; }
+nav button { background: none; border: none; color: var(--text); padding: 0.5rem 1rem; cursor: pointer; font-size: 1rem; }
+nav button.active { border-bottom: 2px solid var(--accent); color: var(--accent); }
+.privacy-badge { background: #10b981; color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem; margin-right: 1rem; }
+
+.grid-container { display: grid; grid-template-columns: 2fr 1fr; flex: 1; overflow: hidden; }
+
+/* Script Section */
+.script-section { display: flex; flex-direction: column; padding: 1.5rem; border-right: 1px solid var(--border); }
+.toolbar { margin-bottom: 0.5rem; display: flex; gap: 0.5rem; }
+.toolbar button { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 0.4rem 0.8rem; border-radius: var(--radius); cursor: pointer; }
+#script-editor { flex: 1; resize: none; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; background: var(--surface); color: var(--text); font-size: 1.1rem; line-height: 1.6; outline: none; }
+.stats-bar { display: flex; gap: 1.5rem; margin-top: 1rem; font-size: 0.9rem; color: var(--muted); }
+
+/* Settings Section */
+.settings-section { padding: 1.5rem; overflow-y: auto; background: var(--surface); }
+.settings-section h2 { font-size: 1.2rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+.notice { font-size: 0.85rem; color: var(--muted); margin-bottom: 1rem; background: var(--bg); padding: 0.5rem; border-radius: var(--radius); border-left: 3px solid var(--accent); }
+.control-group { margin-bottom: 1.2rem; }
+.control-group label { display: block; margin-bottom: 0.4rem; font-size: 0.9rem; }
+select, input[type="range"] { width: 100%; padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: var(--radius); }
+.primary-btn { width: 100%; background: var(--accent); color: white; border: none; padding: 0.8rem; border-radius: var(--radius); font-weight: bold; cursor: pointer; margin-top: 1rem; }
+.primary-btn:hover { background: var(--accent-hover); }
+.secondary-btn { width: 100%; background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 0.6rem; border-radius: var(--radius); cursor: pointer; margin-top: 0.5rem; }
+
+/* Player Footer */
+.player-section { height: 100px; background: var(--player-bg); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; position: relative; }
+.player-info { flex: 1; }
+#current-chapter { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; font-weight: bold; }
+#current-sentence { font-size: 1.1rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 400px; }
+.player-controls { display: flex; gap: 1rem; align-items: center; flex: 1; justify-content: center; }
+.player-controls button { background: none; border: none; font-size: 1.5rem; color: var(--text); cursor: pointer; transition: transform 0.1s; }
+.player-controls button:active { transform: scale(0.9); }
+.play-btn { font-size: 2rem !important; color: var(--accent) !important; }
+.progress-container { position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--border); }
+.progress-bar { height: 100%; width: 0%; background: var(--accent); transition: width 0.3s linear; }
+.highlight-text { color: var(--accent); }
+.hidden { display: none; }
