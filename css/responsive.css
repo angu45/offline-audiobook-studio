@@ -1,0 +1,10 @@
+@media (max-width: 1024px) {
+    .grid-container { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+    .grid-container { grid-template-columns: 1fr; grid-template-rows: auto auto; overflow-y: auto; }
+    header { flex-direction: column; gap: 1rem; padding: 1rem; }
+    .player-section { padding: 0 1rem; flex-direction: column; justify-content: center; height: auto; padding-top: 1rem; padding-bottom: 1rem; gap: 1rem; }
+    #current-sentence { max-width: 100%; text-align: center; }
+}
+
