@@ -1,0 +1,5 @@
+{
+    "name": "Offline Audio Studio",
+    "description": "Local Python text processing",
+    "packages": ["regex"]
+}
