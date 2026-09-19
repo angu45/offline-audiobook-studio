@@ -4,69 +4,184 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Offline Audiobook Studio</title>
-  <meta name="description" content="Create audiobooks from scripts using browser-based local speech synthesis.">
-  <meta name="theme-color" content="#f4f7ff">
+  <title>Offline Audiobook Studio Pro</title>
+
+  <meta
+    name="description"
+    content="Create and listen to audiobooks locally using browser voices. Manage scripts, voices, projects and narration settings."
+  >
+
+  <meta name="theme-color" content="#4f46e5">
 
   <link rel="manifest" href="./manifest.json">
+
   <link rel="stylesheet" href="./css/style.css">
   <link rel="stylesheet" href="./css/responsive.css">
 
-  <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+  <!-- PyScript -->
+  <script
+    type="module"
+    src="https://pyscript.net/releases/2024.1.1/core.js">
+  </script>
 </head>
 
 <body>
 
 <div class="app-shell">
 
+  <!-- ================= HEADER ================= -->
+
   <header class="topbar">
+
     <div class="brand">
-      <div class="brand-icon">🎧</div>
+
+      <div class="brand-icon">
+        🎧
+      </div>
+
       <div>
         <h1>Offline Audiobook Studio</h1>
-        <p>Local script-to-speech workspace</p>
+        <p>Professional local narration workspace</p>
       </div>
+
     </div>
 
     <div class="top-actions">
-      <button id="btn-load-demo" class="btn secondary">Demo</button>
-      <button id="theme-toggle" class="icon-btn" title="Toggle theme">🌙</button>
+
+      <button
+        id="btn-history"
+        class="btn secondary"
+        type="button">
+        🕘 History
+      </button>
+
+      <button
+        id="theme-toggle"
+        class="icon-btn"
+        type="button"
+        title="Toggle theme">
+        🌙
+      </button>
+
     </div>
+
   </header>
+
+
+  <!-- ================= MAIN ================= -->
 
   <main class="studio-layout">
 
-    <!-- EDITOR -->
+
+    <!-- ================= SCRIPT EDITOR ================= -->
+
     <section class="editor-panel card">
 
       <div class="section-header">
+
         <div>
-          <h2>Script</h2>
-          <p>Paste your audiobook script or upload a TXT file.</p>
+          <h2>Script Editor</h2>
+
+          <p>
+            Paste your audiobook script or upload a TXT file.
+          </p>
         </div>
 
         <div class="editor-actions">
+
           <label class="upload-btn">
-            Upload TXT
-            <input id="file-upload" type="file" accept=".txt,text/plain">
+
+            📄 Upload TXT
+
+            <input
+              id="file-upload"
+              type="file"
+              accept=".txt,text/plain">
+
           </label>
 
-          <button id="btn-clear" class="btn danger">Clear</button>
+          <button
+            id="btn-load-demo"
+            class="btn secondary"
+            type="button">
+            Demo
+          </button>
+
+          <button
+            id="btn-clear"
+            class="btn danger"
+            type="button">
+            Clear
+          </button>
+
         </div>
+
       </div>
+
 
       <textarea
         id="script-editor"
-        placeholder="Paste your audiobook script here...
+        spellcheck="true"
+        placeholder="Paste or type your audiobook script here...
 
 Example:
 
 Chapter 1
-The journey begins...
+The Beginning
+
+It was a dark and silent night.
+Alex looked outside the window.
 
 Chapter 2
-A new challenge appears..."
-      ></textarea>
+The Message
+
+His phone suddenly rang..."></textarea>
+
+
+      <div class="editor-toolbar">
+
+        <button
+          id="btn-analyze"
+          class="btn primary"
+          type="button">
+          🔍 Analyze Script
+        </button>
+
+        <button
+          id="btn-save-project"
+          class="btn secondary"
+          type="button">
+          💾 Save Project
+        </button>
+
+        <button
+          id="btn-export-project"
+          class="btn secondary"
+          type="button">
+          ⬇ Export Project
+        </button>
+
+        <label class="btn secondary file-like">
+
+          📂 Import Project
+
+          <input
+            id="project-upload"
+            type="file"
+            accept=".json,application/json">
+
+        </label>
+
+        <span
+          id="processing-status"
+          class="status">
+          Ready
+        </span>
+
+      </div>
+
+
+      <!-- ================= STATS ================= -->
 
       <div class="stats-grid">
 
@@ -97,60 +212,153 @@ A new challenge appears..."
 
       </div>
 
-      <div class="editor-footer">
-        <button id="btn-analyze" class="btn primary">
-          Analyze Script
-        </button>
-
-        <span id="processing-status" class="status">
-          Ready
-        </span>
-      </div>
-
     </section>
 
 
-    <!-- SETTINGS -->
+    <!-- ================= VOICE STUDIO ================= -->
+
     <section class="settings-panel card">
 
       <div class="section-header">
+
         <div>
-          <h2>Voice Settings</h2>
-          <p>Configure your local browser narration.</p>
+
+          <h2>Voice Studio</h2>
+
+          <p>
+            Search, filter, sort and preview available voices.
+          </p>
+
         </div>
+
       </div>
+
+
+      <!-- Voice Search -->
+
+      <div class="field">
+
+        <label for="voice-search">
+          Search Voice
+        </label>
+
+        <input
+          id="voice-search"
+          type="search"
+          autocomplete="off"
+          placeholder="Search voice name or language...">
+
+      </div>
+
+
+      <!-- Filters -->
 
       <div class="form-grid">
 
         <div class="field">
-          <label for="language-filter">Language</label>
+
+          <label for="language-filter">
+            Language
+          </label>
 
           <select id="language-filter">
-            <option value="all">All Languages</option>
+
+            <option value="all">
+              All Languages
+            </option>
+
           </select>
+
         </div>
 
-        <div class="field">
-          <label for="voice-select">Voice</label>
 
-          <select id="voice-select">
-            <option value="">Loading voices...</option>
+        <div class="field">
+
+          <label for="voice-sort">
+            Sort Voices
+          </label>
+
+          <select id="voice-sort">
+
+            <option value="name">
+              Name A–Z
+            </option>
+
+            <option value="name-desc">
+              Name Z–A
+            </option>
+
+            <option value="language">
+              Language
+            </option>
+
+            <option value="local">
+              Local Voices First
+            </option>
+
           </select>
+
         </div>
 
       </div>
 
-      <button id="btn-preview-voice" class="btn secondary full">
-        🔊 Preview Voice
+
+      <!-- Voice -->
+
+      <div class="field">
+
+        <label for="voice-select">
+          Voice Model
+        </label>
+
+        <select id="voice-select">
+
+          <option value="">
+            Loading voices...
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div
+        id="voice-meta"
+        class="voice-meta">
+        Loading voice information...
+      </div>
+
+
+      <!-- Preview -->
+
+      <button
+        id="btn-preview-voice"
+        class="btn primary full"
+        type="button">
+
+        🔊 Preview Selected Voice
+
       </button>
 
 
+      <!-- ================= AUDIO SETTINGS ================= -->
+
       <div class="slider-group">
 
+        <!-- Speed -->
+
         <div class="slider-row">
+
           <div class="slider-label">
-            <label for="rate-slider">Speed</label>
-            <span id="rate-value">1.00x</span>
+
+            <label for="rate-slider">
+              Speech Speed
+            </label>
+
+            <span id="rate-value">
+              1.00x
+            </span>
+
           </div>
 
           <input
@@ -159,15 +367,25 @@ A new challenge appears..."
             min="0.5"
             max="2"
             step="0.05"
-            value="1"
-          >
+            value="1">
+
         </div>
 
 
+        <!-- Pitch -->
+
         <div class="slider-row">
+
           <div class="slider-label">
-            <label for="pitch-slider">Pitch</label>
-            <span id="pitch-value">1.00</span>
+
+            <label for="pitch-slider">
+              Pitch
+            </label>
+
+            <span id="pitch-value">
+              1.00
+            </span>
+
           </div>
 
           <input
@@ -176,15 +394,25 @@ A new challenge appears..."
             min="0"
             max="2"
             step="0.05"
-            value="1"
-          >
+            value="1">
+
         </div>
 
 
+        <!-- Volume -->
+
         <div class="slider-row">
+
           <div class="slider-label">
-            <label for="volume-slider">Volume</label>
-            <span id="volume-value">100%</span>
+
+            <label for="volume-slider">
+              Volume
+            </label>
+
+            <span id="volume-value">
+              100%
+            </span>
+
           </div>
 
           <input
@@ -193,130 +421,357 @@ A new challenge appears..."
             min="0"
             max="1"
             step="0.05"
-            value="1"
-          >
+            value="1">
+
         </div>
 
       </div>
 
 
+      <!-- ================= PRESETS ================= -->
+
       <div class="presets">
+
         <h3>Voice Presets</h3>
 
         <div class="preset-buttons">
-          <button class="preset-btn" data-rate="0.85" data-pitch="1">
+
+          <button
+            class="preset-btn"
+            data-rate="0.78"
+            data-pitch="0.95"
+            type="button">
+            Story
+          </button>
+
+          <button
+            class="preset-btn"
+            data-rate="0.88"
+            data-pitch="1"
+            type="button">
             Calm
           </button>
 
-          <button class="preset-btn" data-rate="1" data-pitch="1">
+          <button
+            class="preset-btn"
+            data-rate="1"
+            data-pitch="1"
+            type="button">
             Normal
           </button>
 
-          <button class="preset-btn" data-rate="1.15" data-pitch="1.05">
+          <button
+            class="preset-btn"
+            data-rate="1.15"
+            data-pitch="1.03"
+            type="button">
             Fast
           </button>
 
-          <button class="preset-btn" data-rate="0.75" data-pitch="0.9">
-            Story
-          </button>
         </div>
+
       </div>
 
 
+      <!-- ================= ADVANCED SETTINGS ================= -->
+
       <div class="advanced-settings">
 
-        <h3>Advanced Options</h3>
+        <h3>
+          Audio & Narration Settings
+        </h3>
+
 
         <label class="check-row">
-          <input id="auto-number" type="checkbox" checked>
-          <span>Normalize numbers automatically</span>
+
+          <input
+            id="auto-number"
+            type="checkbox"
+            checked>
+
+          <span>
+            Normalize numbers for narration
+          </span>
+
         </label>
 
+
         <label class="check-row">
-          <input id="auto-advance" type="checkbox" checked>
-          <span>Auto advance sentences</span>
+
+          <input
+            id="auto-advance"
+            type="checkbox"
+            checked>
+
+          <span>
+            Automatically advance sentences
+          </span>
+
         </label>
+
+
+        <label class="check-row">
+
+          <input
+            id="pause-chapters"
+            type="checkbox"
+            checked>
+
+          <span>
+            Add pause between chapters
+          </span>
+
+        </label>
+
+
+        <div class="form-grid compact">
+
+          <div class="field">
+
+            <label for="chapter-gap">
+              Chapter Gap (ms)
+            </label>
+
+            <input
+              id="chapter-gap"
+              type="number"
+              min="0"
+              max="5000"
+              step="100"
+              value="700">
+
+          </div>
+
+
+          <div class="field">
+
+            <label for="sentence-gap">
+              Sentence Gap (ms)
+            </label>
+
+            <input
+              id="sentence-gap"
+              type="number"
+              min="0"
+              max="2000"
+              step="50"
+              value="80">
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ================= EXPORT ================= -->
+
+      <div class="export-box">
+
+        <h3>
+          Audiobook Export
+        </h3>
+
+        <p>
+
+          Browser SpeechSynthesis voices can be played locally,
+          but standard browsers do not provide their generated
+          audio stream for reliable MP3/WAV export.
+
+        </p>
+
+        <button
+          id="btn-export-audio"
+          class="btn secondary full"
+          type="button">
+
+          ⬇ Export Audiobook
+
+        </button>
+
+        <small id="export-status">
+
+          Browser voice playback is available.
+          Real audio export requires a local TTS model
+          that provides audio data.
+
+        </small>
 
       </div>
 
     </section>
 
 
-    <!-- METADATA -->
+    <!-- ================= METADATA ================= -->
+
     <section class="metadata-panel card">
 
       <div class="section-header">
+
         <div>
+
           <h2>Audiobook Information</h2>
-          <p>Optional metadata for your project.</p>
+
+          <p>
+            Metadata is saved with your project.
+          </p>
+
         </div>
+
       </div>
+
 
       <div class="form-grid">
 
         <div class="field">
-          <label for="book-title">Title</label>
-          <input id="book-title" type="text" placeholder="Audiobook title">
+
+          <label for="book-title">
+            Book Title
+          </label>
+
+          <input
+            id="book-title"
+            placeholder="Audiobook title">
+
         </div>
+
 
         <div class="field">
-          <label for="book-author">Author</label>
-          <input id="book-author" type="text" placeholder="Author name">
+
+          <label for="book-author">
+            Author / Narrator
+          </label>
+
+          <input
+            id="book-author"
+            placeholder="Author or narrator">
+
         </div>
 
       </div>
 
-      <button id="btn-generate" class="btn primary full">
-        🎙️ Prepare Audiobook
-      </button>
 
-      <div class="notice">
-        Browser SpeechSynthesis can narrate your script locally.
-        Direct MP3/WAV export is not guaranteed by browser speech engines.
+      <div class="form-grid">
+
+        <div class="field">
+
+          <label for="book-language">
+            Language
+          </label>
+
+          <input
+            id="book-language"
+            placeholder="English">
+
+        </div>
+
+
+        <div class="field">
+
+          <label for="book-description">
+            Description
+          </label>
+
+          <input
+            id="book-description"
+            placeholder="Optional description">
+
+        </div>
+
       </div>
+
+
+      <button
+        id="btn-prepare"
+        class="btn primary full"
+        type="button">
+
+        🎙️ Prepare Narration
+
+      </button>
 
     </section>
 
 
-    <!-- PLAYER -->
+    <!-- ================= PLAYER ================= -->
+
     <section class="player-section card">
 
       <div class="player-header">
+
         <div>
-          <h2 id="current-chapter">Ready to play</h2>
-          <p id="current-sentence">No sentence selected</p>
+
+          <h2 id="current-chapter">
+            Ready to play
+          </h2>
+
+          <p id="current-sentence">
+            No sentence selected
+          </p>
+
         </div>
 
-        <span id="player-progress">0%</span>
+        <span id="player-progress">
+          0%
+        </span>
+
       </div>
 
+
       <div class="progress-container">
+
         <div id="progress-bar"></div>
+
       </div>
+
 
       <div class="player-controls">
 
-        <button id="btn-prev-chapter" class="player-btn">
+        <button
+          id="btn-prev-chapter"
+          class="player-btn"
+          title="Previous chapter"
+          type="button">
           ⏮
         </button>
 
-        <button id="btn-prev-sent" class="player-btn">
+        <button
+          id="btn-prev-sent"
+          class="player-btn"
+          title="Previous sentence"
+          type="button">
           ◀
         </button>
 
-        <button id="btn-play-pause" class="player-btn play">
+        <button
+          id="btn-play-pause"
+          class="player-btn play"
+          title="Play / Pause"
+          type="button">
           ▶
         </button>
 
-        <button id="btn-stop" class="player-btn">
+        <button
+          id="btn-stop"
+          class="player-btn"
+          title="Stop"
+          type="button">
           ■
         </button>
 
-        <button id="btn-next-sent" class="player-btn">
+        <button
+          id="btn-next-sent"
+          class="player-btn"
+          title="Next sentence"
+          type="button">
           ▶
         </button>
 
-        <button id="btn-next-chapter" class="player-btn">
+        <button
+          id="btn-next-chapter"
+          class="player-btn"
+          title="Next chapter"
+          type="button">
           ⏭
         </button>
 
@@ -325,17 +780,69 @@ A new challenge appears..."
     </section>
 
 
-    <!-- QUEUE -->
+    <!-- ================= CHAPTER QUEUE ================= -->
+
     <section class="queue-manager card">
 
       <div class="section-header">
+
         <div>
-          <h2>Chapter Queue</h2>
-          <p id="queue-info">No audiobook loaded.</p>
+
+          <h2>
+            Chapter Queue
+          </h2>
+
+          <p id="queue-info">
+            No audiobook loaded.
+          </p>
+
         </div>
+
       </div>
 
-      <div id="chapter-list" class="chapter-list"></div>
+
+      <div
+        id="chapter-list"
+        class="chapter-list">
+      </div>
+
+    </section>
+
+
+    <!-- ================= HISTORY ================= -->
+
+    <section
+      id="history-panel"
+      class="history-panel card hidden">
+
+      <div class="section-header">
+
+        <div>
+
+          <h2>
+            Local History
+          </h2>
+
+          <p>
+            Saved projects are stored locally in this browser.
+          </p>
+
+        </div>
+
+        <button
+          id="btn-clear-history"
+          class="btn danger"
+          type="button">
+          Clear History
+        </button>
+
+      </div>
+
+
+      <div
+        id="history-list"
+        class="history-list">
+      </div>
 
     </section>
 
@@ -343,24 +850,53 @@ A new challenge appears..."
 
 
   <footer class="footer">
-    <p>Offline Audiobook Studio • Browser-based local narration</p>
+
+    Offline Audiobook Studio Pro
+    • Local browser narration
+    • No TTS API key required
+
   </footer>
 
 </div>
 
 
-<script type="py" src="./pyscript/script_analyzer.py"></script>
+<!-- PyScript Analyzer -->
 
-<script type="module" src="./js/app.js"></script>
+<script
+  type="py"
+  src="./pyscript/script_analyzer.py">
+</script>
 
+
+<!-- Application -->
+
+<script
+  type="module"
+  src="./js/app.js">
+</script>
+
+
+<!-- Service Worker -->
 
 <script>
+
 if ("serviceWorker" in navigator) {
+
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js")
-      .catch(err => console.warn("Service Worker:", err));
+
+    navigator.serviceWorker
+      .register("./service-worker.js")
+      .catch(error => {
+        console.warn(
+          "Service Worker registration failed:",
+          error
+        );
+      });
+
   });
+
 }
+
 </script>
 
 </body>
