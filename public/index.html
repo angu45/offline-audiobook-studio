@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Audiobook Studio</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="assets/icon.svg">
+<link rel="stylesheet" href="styles.css">
+<script type="module" src="https://pyscript.net/releases/2024.11.1/core.js"></script>
+</head>
+<body>
+<script type="py" src="./python/script_analyzer.py"></script>
+<header class="top">
+  <input id="title" aria-label="Project title" value="Untitled book">
+  <select id="projSel" aria-label="Open project"></select>
+  <button id="newBtn">New</button>
+  <button id="saveBtn">Save</button>
+  <button id="impBtn">Import</button>
+  <button id="expBtn">Export</button>
+  <button id="themeBtn" aria-label="Toggle theme">Theme</button>
+  <span id="net" class="badge">Online</span>
+  <input id="file" type="file" accept=".txt,.md,.json" hidden>
+</header>
+<main>
+  <section class="work">
+    <textarea id="editor" aria-label="Script editor" placeholder="Paste or type your manuscript. Lines like “Chapter 1” or “Introduction” start new chapters. You can also drop a .txt, .md or .json file here." spellcheck="false"></textarea>
+    <div id="stats" class="stats" aria-live="polite">Analyzer loading…</div>
+    <ul id="warn" class="warn"></ul>
+    <h2>Chapters and chunks</h2>
+    <div id="chunks" class="chunks"><p class="empty">Nothing to narrate yet. Add some text above.</p></div>
+  </section>
+  <aside class="side" aria-label="Voice settings">
+    <label>Preset <select id="preset"></select></label>
+    <label>Voice <select id="voice"></select></label>
+    <p id="vnote" class="note"></p>
+    <label>Speed <output id="rateO"></output><input id="rate" type="range" min="0.5" max="2" step="0.05"></label>
+    <label>Pitch <output id="pitchO"></output><input id="pitch" type="range" min="0.5" max="2" step="0.05"></label>
+    <label>Volume <output id="volO"></output><input id="vol" type="range" min="0" max="1" step="0.05"></label>
+    <label>Pause between chunks (ms) <input id="pause" type="number" min="0" max="5000" step="50"></label>
+    <label>Max chunk size (characters) <input id="limit" type="number" min="200" max="4000" step="100"></label>
+    <label>Pronunciation (one “word=spoken form” per line)<textarea id="pron" rows="4" placeholder="AI=Artificial Intelligence"></textarea></label>
+    <p class="note">Web Speech plays through your speakers. Browsers do not expose that audio, so it cannot be exported as WAV or MP3.</p>
+  </aside>
+</main>
+<footer class="player">
+  <button id="prev" aria-label="Previous chunk">⏮</button>
+  <button id="play" aria-label="Play">▶</button>
+  <button id="pauseBtn" aria-label="Pause or resume">⏯</button>
+  <button id="stop" aria-label="Stop">⏹</button>
+  <button id="next" aria-label="Next chunk">⏭</button>
+  <span id="status" role="status">Idle</span>
+</footer>
+<div id="toast" role="alert"></div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
